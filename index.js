@@ -7,7 +7,7 @@ const cors = require('cors');
 app.use(cors());
 
 app.get('/', (req, res) => {
-    res.send("Hello from node api server");
+    res.send("Server is working");
 });
 
 mongoose.connect(mongoURL)
@@ -20,9 +20,9 @@ require('./User')
 
 const User = mongoose.model("User")
 
-app.get('/', function (req, res) {
-    res.send('Hello World')
-})
+// app.get('/', function (req, res) {
+//     res.send('Hello World')
+// })
 
 app.listen(3000, () => {
     console.log("server is running on port 3000")
@@ -69,7 +69,7 @@ app.post('/login', async (req, res) => {
 
         return res.status(201).send({ status: "ok", data: userExist });
     } catch (error) {
-        return res.status(500).send({ error: "Server error" });
+        return res.status(500).send({ error: "Unable to login" });
     }
 })
 
@@ -108,5 +108,59 @@ app.put('/update/:id', async (req, res) => {
     } catch (error) {
         return res.status(500).send({ error: "Server error" });
     }
-
 })
+
+app.post('/budget/:id', async (req, res) => {
+    try {
+        console.log(`Processing budget update for user: ${req.params.id}`);
+        const userId = req.params.id;
+        const { name, budgetAmount } = req.body;
+
+        if (!name || budgetAmount == null) {
+            return res.status(400).send({ error: "Missing required fields: name and budgetAmount" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).send({ error: "User not found" });
+        }
+
+        // Check if budget with the same name already exists
+        const existingBudget = user.budgets.find(budget => budget.name === name);
+        if (existingBudget) {
+            // Update existing budget
+            existingBudget.budgetAmount = budgetAmount;
+        } else {
+            // Add new budget
+            user.budgets.push({ name, budgetAmount, expensesAmount: 0, expensesCategory: [] });
+        }
+
+        await user.save();
+        return res.status(200).send({ status: "ok", message: "Budget processed successfully" });
+    } catch (error) {
+        console.error("Error processing budget:", error);
+        return res.status(500).send({ error: "Server error" });
+    }
+});
+
+
+app.delete('/budget/:id/:name', async (req, res) => {
+    try {
+        console.log(`Deleting budget for user: ${req.params.id}, budget: ${req.params.name}`);
+        const userId = req.params.id;
+        const budgetName = req.params.name;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).send({ error: "User not found" });
+        }
+
+        user.budgets = user.budgets.filter(budget => budget.name !== budgetName);
+
+        await user.save();
+        return res.status(200).send({ status: "ok", message: "Budget deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting budget:", error);
+        return res.status(500).send({ error: "Server error" });
+    }
+});
