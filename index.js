@@ -104,23 +104,27 @@ app.put('/update/:id', async (req, res) => {
             return res.status(404).send({ error: "User not found" });
         }
 
-        return res.status(200).send({ status: "ok", message: "User updated successfully" });
+        return res.status(200).send({ status: "ok", data: result });
     } catch (error) {
         return res.status(500).send({ error: "Server error" });
     }
 })
 
-app.post('/budget/:id', async (req, res) => {
+app.put('/budget/:id', async (req, res) => {
     try {
         console.log(`Processing budget update for user: ${req.params.id}`);
         const userId = req.params.id;
         const { name, budgetAmount } = req.body;
+        console.log('name', name)
+        console.log('budgetAmount', budgetAmount)
 
         if (!name || budgetAmount == null) {
             return res.status(400).send({ error: "Missing required fields: name and budgetAmount" });
         }
 
         const user = await User.findById(userId);
+        console.log(user)
+
         if (!user) {
             return res.status(404).send({ error: "User not found" });
         }
@@ -135,8 +139,9 @@ app.post('/budget/:id', async (req, res) => {
             user.budgets.push({ name, budgetAmount, expensesAmount: 0, expensesCategory: [] });
         }
 
-        await user.save();
-        return res.status(200).send({ status: "ok", message: "Budget processed successfully" });
+        const userData = await user.save();
+
+        return res.status(200).send({ status: "ok", data: userData });
     } catch (error) {
         console.error("Error processing budget:", error);
         return res.status(500).send({ error: "Server error" });
@@ -157,10 +162,16 @@ app.delete('/budget/:id/:name', async (req, res) => {
 
         user.budgets = user.budgets.filter(budget => budget.name !== budgetName);
 
-        await user.save();
-        return res.status(200).send({ status: "ok", message: "Budget deleted successfully" });
+        const userData = await user.save();
+
+        return res.status(200).send({ status: "ok", data: userData });
     } catch (error) {
         console.error("Error deleting budget:", error);
         return res.status(500).send({ error: "Server error" });
     }
 });
+
+
+
+
+//https://www.youtube.com/watch?v=Pqo7RBh7Xh4 - mongodb, prisma and graphql
