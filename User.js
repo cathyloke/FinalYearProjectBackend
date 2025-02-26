@@ -20,6 +20,7 @@ const UserSchema = new mongoose.Schema(
                 expensesCategoryAmount: { type: Number },
                 expensesCategoryDetail: [{
                     name: { type: String },
+                    payer: { type: String },
                     dateCreated: { type: Date },
                     amount: { type: Number },
                 }]

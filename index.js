@@ -28,6 +28,7 @@ app.listen(3000, () => {
     console.log("server is running on port 3000")
 });
 
+//User Registration
 app.post('/register', async (req, res) => {
     try {
         console.log(`Registering user ${req.body}`)
@@ -53,6 +54,7 @@ app.post('/register', async (req, res) => {
     }
 })
 
+//User Login
 app.post('/login', async (req, res) => {
     try {
         console.log(`Logging user ${req.body}`)
@@ -73,6 +75,7 @@ app.post('/login', async (req, res) => {
     }
 })
 
+//Retrieve User Info
 app.get('/read/:id', async (req, res) => {
     try {
         const userId = req.params.id;
@@ -90,13 +93,12 @@ app.get('/read/:id', async (req, res) => {
     }
 });
 
+//Edit User Info
 app.put('/update/:id', async (req, res) => {
     try {
         console.log(`Updating user ${req.body}`)
         const userId = req.params.id;
         const updates = req.body;
-        // console.log(userId)
-        // console.log(JSON.stringify(updates))
 
         const result = await User.updateOne({ _id: userId }, { $set: updates });
 
@@ -110,6 +112,37 @@ app.put('/update/:id', async (req, res) => {
     }
 })
 
+//Retrieve User Budget Info
+app.get('/budget/:id/:name', async (req, res) => {
+    try {
+        console.log(`Processing budget update for user: ${req.params.id}`);
+        const userId = req.params.id;
+        const name = req.params.name
+        console.log('name', name)
+
+        if (!name) {
+            return res.status(400).send({ error: "Missing required fields: name" });
+        }
+
+        const user = await User.findById(userId);
+        console.log(user)
+
+        if (!user) {
+            return res.status(404).send({ error: "User not found" });
+        }
+
+        // Check if budget with the same name already exists
+        const existingBudget = user.budgets.find(budget => budget.name === name);
+        if (!existingBudget) {
+            throw new Error(`Budget not found`)
+        }
+        return res.status(200).send({ status: "ok", data: existingBudget });
+    } catch (error) {
+        return res.status(500).send({ error: "Server error" });
+    }
+});
+
+//Upsert User Budget Info
 app.put('/budget/:id', async (req, res) => {
     try {
         console.log(`Processing budget update for user: ${req.params.id}`);
@@ -148,7 +181,7 @@ app.put('/budget/:id', async (req, res) => {
     }
 });
 
-
+//Delete User Budget Info
 app.delete('/budget/:id/:name', async (req, res) => {
     try {
         console.log(`Deleting budget for user: ${req.params.id}, budget: ${req.params.name}`);
@@ -171,6 +204,25 @@ app.delete('/budget/:id/:name', async (req, res) => {
     }
 });
 
+//Add Expenses
+app.post('/expenses/:id/:name', async (req, res) => {
+    try {
+        console.log(`Adding expenses for user: ${req.params.id}, budget: ${req.params.name}`);
+        const userId = req.params.id;
+        const budgetName = req.params.name;
+
+        const { expensesData } = req.body
+
+        console.log('asdas')
+        console.log(expensesData)
+
+
+        return res.status(200).send({ status: "ok", data: 'ok' });
+    } catch (error) {
+        console.error("Error deleting budget:", error);
+        return res.status(500).send({ error: "Server error" });
+    }
+})
 
 
 
