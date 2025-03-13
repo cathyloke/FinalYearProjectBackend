@@ -224,7 +224,7 @@ app.delete("/budget/:id/:name", async (req, res) => {
     }
 });
 
-//Retrieve User Budget Info
+//Retrieve User expenses Info
 app.get("/expenses/:id/:name/:categoryName", async (req, res) => {
     try {
         console.log(`Retrieving expenses for user: ${req.params.id}`);
@@ -271,6 +271,7 @@ app.get("/expenses/:id/:name/:categoryName", async (req, res) => {
     }
 });
 
+//Retrieve User expenses details Info
 app.get("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
     try {
         console.log(`Retrieving expenses for user: ${req.params.id}`);
@@ -534,5 +535,11 @@ app.delete("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
         return res.status(500).send({ error: "Server error" });
     }
 });
+
+
+
+
+
+
 
 //https://www.youtube.com/watch?v=Pqo7RBh7Xh4 - mongodb, prisma and graphql
