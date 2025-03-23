@@ -1,7 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const mongoURL =
-    "mongodb+srv://catloke963:1234@feriodb.isp9y.mongodb.net/?retryWrites=true&w=majority&appName=ferioDB";
+    "mongodb+srv://catloke963:1234@feriodb.isp9y.mongodb.net/feriodb?retryWrites=true&w=majority&appName=ferioDB";
+
 const app = express();
 app.use(express.json());
 const cors = require("cors");
@@ -20,8 +21,12 @@ mongoose
         console.error(error);
     });
 require("./User");
+require("./TravelMode");
+require("./Interest");
 
 const User = mongoose.model("User");
+const TravelMode = mongoose.model("TravelMode");
+const Interest = mongoose.model("Interest");
 
 // app.get('/', function (req, res) {
 //     res.send('Hello World')
@@ -78,6 +83,10 @@ app.post("/login", async (req, res) => {
     }
 });
 
+/**
+ * User
+ */
+
 //Retrieve User Info
 app.get("/read/:id", async (req, res) => {
     try {
@@ -99,7 +108,7 @@ app.get("/read/:id", async (req, res) => {
 //Edit User Info
 app.put("/update/:id", async (req, res) => {
     try {
-        console.log(`Updating user ${req.body}`);
+        console.log(`Updating user ${JSON.stringify(req.body)}`);
         const userId = req.params.id;
         const updates = req.body;
 
@@ -114,6 +123,10 @@ app.put("/update/:id", async (req, res) => {
         return res.status(500).send({ error: "Server error" });
     }
 });
+
+/**
+ * Budget
+ */
 
 //Retrieve User Budget Info
 app.get("/budget/:id/:name", async (req, res) => {
@@ -536,10 +549,48 @@ app.delete("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
     }
 });
 
+/**
+ * Preferences
+ */
 
+//Read preferences
+app.get("/preferences/:type", async (req, res) => {
+    try {
+        console.log(`Retrieving preferences for type ${req.params.type}`);
+        const type = req.params.type;
 
+        let travelModes;
+        let interest;
+        if (type === "travelMode") {
+            travelModes = await TravelMode.find();
+        } else if (type === "interest") {
+            interest = await Interest.find();
+        }
 
+        if (!travelModes && !interest) {
+            throw new Error("Type of Preferences not found");
+        }
 
+        return res
+            .status(200)
+            .send({ status: "ok", data: travelModes || interest });
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+});
 
+//Update preferences
+
+//Delete preferences
+
+/**
+ * Preferences
+ */
+
+//Read plan
+
+//Update plan
+
+//Delete plan
 
 //https://www.youtube.com/watch?v=Pqo7RBh7Xh4 - mongodb, prisma and graphql

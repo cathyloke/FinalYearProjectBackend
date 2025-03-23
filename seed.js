@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 
 const mongoURL =
-    "mongodb+srv://catloke963:1234@feriodb.isp9y.mongodb.net/?retryWrites=true&w=majority&appName=ferioDB";
+    "mongodb+srv://catloke963:1234@feriodb.isp9y.mongodb.net/feriodb?retryWrites=true&w=majority&appName=ferioDB";
+
 mongoose.connect(mongoURL);
 
 const Interest = mongoose.model(
@@ -25,40 +26,56 @@ async function seedDB() {
         console.log("Existing data cleared");
 
         await Interest.insertMany([
-            { name: "Adventure & Outdoor" },
-            { name: "Culture & History" },
-            { name: "Food & Drinks" },
-            { name: "Relaxation & Wellness" },
-            { name: "Entertainment & Nightlife" },
-            { name: "Nature & Scenic Spots" },
-            { name: "Shopping & Luxury" },
-            { name: "Sports & Events" },
-            { name: "Eco-Tourism" },
-            { name: "Technology & Innovation" },
-            { name: "Music & Festivals" },
-            { name: "Spiritual & Religious Travel" },
-            { name: "Photography" },
-            { name: "Wildlife & Safaris" },
-            { name: "Cruise & Island Hopping" },
-            { name: "Skiing & Snowboarding" },
-            { name: "Road Trips" },
-            { name: "Backpacking & Budget Travel" },
-            { name: "Luxury Travel" },
-            { name: "Volunteering & Social Impact Travel" },
+            { name: "art" },
+            { name: "theater" },
+            { name: "museums" },
+            { name: "history" },
+            { name: "architecture" },
+            { name: "cultural events" },
+            { name: "hiking" },
+            { name: "wildlife" },
+            { name: "beaches" },
+            { name: "national parks" },
+            { name: "adventure sports" },
+            { name: "cuisine" },
+            { name: "street food" },
+            { name: "wine tasting" },
+            { name: "breweries" },
+            { name: "fine dining" },
+            { name: "spa" },
+            { name: "yoga retreats" },
+            { name: "relaxation" },
+            { name: "resorts" },
+            { name: "shopping" },
+            { name: "luxury brands" },
+            { name: "local markets" },
+            { name: "theme parks" },
+            { name: "zoos" },
+            { name: "kid-friendly activities" },
+            { name: "bars" },
+            { name: "clubs" },
+            { name: "live music" },
+            { name: "theater shows" },
+            { name: "sports events" },
+            { name: "fitness" },
+            { name: "cycling" },
+            { name: "tech" },
+            { name: "innovation" },
+            { name: "conventions" },
+            { name: "photography" },
+            { name: "scenic views" },
         ]);
 
         await TravelMode.insertMany([
-            { name: "Air Travel" },
-            { name: "Road Trip" },
-            { name: "Rail Travel" },
-            { name: "Cruise & Ferry" },
-            { name: "Eco-friendly Travel" },
-            { name: "Adventure Travel" },
-            { name: "Cycling" },
-            { name: "Walking & Hiking" },
-            { name: "Self-Driving" },
-            { name: "Public Transport" },
-            { name: "Luxury Travel" },
+            { name: "walking" },
+            { name: "public transport" },
+            { name: "rental car" },
+            { name: "bike" },
+            { name: "guided tours" },
+            { name: "private car" },
+            { name: "scooter" },
+            { name: "rideshare" },
+            { name: "mixed" },
         ]);
 
         console.log("Database seeded successfully");

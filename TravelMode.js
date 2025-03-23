@@ -5,7 +5,7 @@ const TravelModeSchema = new mongoose.Schema(
         name: { type: String, required: true, unique: true },
     },
     {
-        collection: "TravelMode",
+        collection: "travelmodes",
     }
 );
 mongoose.model("TravelMode", TravelModeSchema);

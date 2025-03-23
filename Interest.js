@@ -5,7 +5,7 @@ const InterestSchema = new mongoose.Schema(
         name: { type: String, required: true, unique: true },
     },
     {
-        collection: "Interest",
+        collection: "interests",
     }
 );
 mongoose.model("Interest", InterestSchema);
