@@ -9,12 +9,38 @@ const UserSchema = new mongoose.Schema(
             required: true,
         },
         email: { type: String, unique: true, required: true },
-        password: { type: String, CoverScreen2required: true },
+        password: { type: String, required: true },
         preferences: {
             travelModes: [String],
             interests: [String],
         },
-        savedPlans: [String],
+        savedPlans: [
+            {
+                name: { type: String },
+                days: { type: Number },
+                startDate: { type: Date },
+                endDate: { type: Date },
+                destination: { type: String },
+                budget: {
+                    type: String,
+                    enum: ["high", "medium", "low"],
+                },
+                travelModes: [String],
+                interests: [String],
+                itinerary: [
+                    {
+                        day: { type: Number },
+                        activities: [
+                            {
+                                time: { type: Date },
+                                activity: { type: String },
+                                location: { type: String },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
         budgets: [
             {
                 name: { type: String, unique: true },

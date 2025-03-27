@@ -579,18 +579,154 @@ app.get("/preferences/:type", async (req, res) => {
     }
 });
 
-//Update preferences
-
-//Delete preferences
-
 /**
- * Preferences
+ * Itinerary
  */
 
-//Read plan
+//Read itinerary
+app.get("/itinerary/:id", async (req, res) => {
+    try {
+        console.log(`Retrieving itinerary for user: ${req.params.id}`);
+        const userId = req.params.id;
+        // const { name, budgetAmount } = req.body;
 
-//Update plan
+        const user = await User.findById(userId);
+        console.log(user);
 
-//Delete plan
+        if (!user) {
+            throw new Error(`User not found`);
+        }
+
+        const itineraries = user.savedPlans;
+        if (!itineraries) {
+            throw new Error(`Itinerary not found`);
+        }
+
+        return res.status(200).send({ status: "ok", data: itineraries });
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+});
+
+app.get("/itinerary/:id/:itineraryId", async (req, res) => {
+    try {
+        console.log(`Retrieving itinerary for user: ${req.params.id}`);
+        const userId = req.params.id;
+        const itineraryId = req.params.itineraryId;
+
+        const user = await User.findById(userId);
+        console.log(user);
+
+        if (!user) {
+            throw new Error(`User not found`);
+        }
+
+        const plans = user.savedPlans;
+        if (!plans) {
+            throw new Error(`Plans not found`);
+        }
+
+        const plan = plans.find((plan) => plan._id.toString() === itineraryId);
+        if (!plan) {
+            throw new Error(`Plan not found`);
+        }
+
+        return res.status(200).send({ status: "ok", data: plan });
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+});
+
+//Add itinerary
+app.post("/itinerary/:id", async (req, res) => {
+    try {
+        console.log(`Processing itinerary update for user: ${req.params.id}`);
+        const userId = req.params.id;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            throw new Error(`User not found`);
+        }
+
+        console.log(req.body);
+        console.log("sdfsdf");
+        console.log(req.body.newItinerary);
+        user.savedPlans.push(req.body.newItinerary);
+        console.log("asdadsasd");
+        await user.save();
+
+        const createdItinerary = user.savedPlans[user.savedPlans.length - 1];
+
+        return res.status(200).send({ status: "ok", data: createdItinerary });
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+});
+
+//Update itinerary
+app.put("/itinerary/:userId/:itineraryId", async (req, res) => {
+    try {
+        const { userId, itineraryId } = req.params;
+        const updateData = req.body; // Contains the new itinerary data
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).send({ error: "User not found" });
+        }
+
+        // Find the itinerary to update
+        const itineraryIndex = user.savedPlans.findIndex(
+            (plan) => plan._id.toString() === itineraryId
+        );
+        if (itineraryIndex === -1) {
+            return res.status(404).send({ error: "Itinerary not found" });
+        }
+
+        // Update only the fields provided in the request body
+        Object.assign(user.savedPlans[itineraryIndex], updateData);
+
+        // Save the updated user document
+        await user.save();
+
+        return res.status(200).send({
+            message: "Itinerary updated successfully",
+            updatedItinerary: user.savedPlans[itineraryIndex],
+        });
+    } catch (error) {
+        return res.status(500).send({ error: error.message });
+    }
+});
+
+//Delete itinerary
+app.delete("/itinerary/:userId/:itineraryId", async (req, res) => {
+    try {
+        const { userId, itineraryId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).send({ error: "User not found" });
+        }
+
+        // Find the index of the itinerary to delete
+        const itineraryIndex = user.savedPlans.findIndex(
+            (plan) => plan._id.toString() === itineraryId
+        );
+        if (itineraryIndex === -1) {
+            return res.status(404).send({ error: "Itinerary not found" });
+        }
+
+        // Remove the itinerary from savedPlans
+        user.savedPlans.splice(itineraryIndex, 1);
+        await user.save();
+
+        return res.status(200).send({
+            message: "Itinerary deleted successfully",
+            savedPlans: user.savedPlans,
+        });
+    } catch (error) {
+        return res.status(500).send({ error: error.message });
+    }
+});
 
 //https://www.youtube.com/watch?v=Pqo7RBh7Xh4 - mongodb, prisma and graphql
