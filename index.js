@@ -718,13 +718,51 @@ app.delete("/itinerary/:userId/:itineraryId", async (req, res) => {
 
         // Remove the itinerary from savedPlans
         user.savedPlans.splice(itineraryIndex, 1);
-        await user.save();
+        const userUpdated = await user.save();
 
         return res.status(200).send({
             message: "Itinerary deleted successfully",
-            savedPlans: user.savedPlans,
+            data: userUpdated,
         });
     } catch (error) {
+        return res.status(500).send({ error: error.message });
+    }
+});
+
+app.put("/itinerary/details/:userId/:itineraryId", async (req, res) => {
+    try {
+        const { userId, itineraryId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).send({ error: "User not found" });
+        }
+
+        const planIndex = user.savedPlans.findIndex(
+            (plan) => plan._id.toString() === itineraryId
+        );
+        if (planIndex === -1) {
+            return res.status(404).send({ error: "Itinerary not found" });
+        }
+
+        user.savedPlans[planIndex].itinerary = req.body.itinerary;
+        // console.log(user);
+        console.log("dasdad");
+        console.log(JSON.stringify(user.savedPlans[planIndex].itinerary));
+        console.log(JSON.stringify(req.body.itinerary));
+        // Mark as modified to ensure Mongoose detects the change
+        user.markModified(`savedPlans.${planIndex}.itinerary`);
+
+        console.log("saving");
+        // Save the updated user document
+        const userUpdated = await user.save();
+
+        return res.status(200).send({
+            message: "Itinerary deleted successfully",
+            data: userUpdated,
+        });
+    } catch (error) {
+        console.error(JSON.stringify(error));
         return res.status(500).send({ error: error.message });
     }
 });

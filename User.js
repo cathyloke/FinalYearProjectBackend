@@ -32,7 +32,7 @@ const UserSchema = new mongoose.Schema(
                         day: { type: Number },
                         activities: [
                             {
-                                time: { type: Date },
+                                time: { type: String },
                                 activity: { type: String },
                                 location: { type: String },
                             },
