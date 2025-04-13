@@ -28,10 +28,6 @@ const User = mongoose.model("User");
 const TravelMode = mongoose.model("TravelMode");
 const Interest = mongoose.model("Interest");
 
-// app.get('/', function (req, res) {
-//     res.send('Hello World')
-// })
-
 app.listen(3000, () => {
     console.log("server is running on port 3000");
 });
@@ -39,7 +35,7 @@ app.listen(3000, () => {
 //User Registration
 app.post("/register", async (req, res) => {
     try {
-        console.log(`Registering user ${req.body}`);
+        console.log(`Registering user: ${JSON.stringify(req.body)}`);
         const { name, gender, email, password } = req.body;
         const oldUser = await User.findOne({ email: email });
 
@@ -53,33 +49,35 @@ app.post("/register", async (req, res) => {
             email: email,
             password: password,
         });
-        console.log("user created");
 
-        return res.status(201).send({ status: "ok", data: newUser });
+        console.log(`User registered: ${JSON.stringify(newUser)}`);
+        return res.status(200).send({ status: "ok", data: newUser });
     } catch (error) {
         console.error(error);
-        return res.status(500).send({ error: "Internal Server Error" });
+        return res.status(400).send({ error: error.message });
     }
 });
 
 //User Login
 app.post("/login", async (req, res) => {
     try {
-        console.log(`Logging user ${req.body}`);
+        console.log(`Logging user: ${JSON.stringify(req.body)}`);
         const { email, password } = req.body;
         const userExist = await User.findOne({ email: email });
 
         if (!userExist) {
-            return res.status(400).send({ error: "User not exists" });
+            throw new Error("User not exist");
         }
 
         if (userExist.password !== password) {
-            return res.status(400).send({ error: "Password mismatch" });
+            throw new Error("Password mismatch");
         }
 
-        return res.status(201).send({ status: "ok", data: userExist });
+        console.log(`User logged in: ${JSON.stringify(userExist)}`);
+        return res.status(200).send({ status: "ok", data: userExist });
     } catch (error) {
-        return res.status(500).send({ error: "Unable to login" });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
@@ -90,18 +88,20 @@ app.post("/login", async (req, res) => {
 //Retrieve User Info
 app.get("/read/:id", async (req, res) => {
     try {
+        console.log(`Retrieving user: ${JSON.stringify(req.body)}`);
+
         const userId = req.params.id;
-        // console.log(userId)
-        const user = await User.findById(userId); // Fetch user by _id
-        // console.log(JSON.stringify(user))
+        const user = await User.findById(userId);
 
         if (!user) {
-            return res.status(404).send({ error: "User not found" });
+            throw new Error("User not exist");
         }
 
+        console.log(`User retrieved: ${JSON.stringify(user)}`);
         return res.status(200).send({ status: "ok", data: user });
     } catch (error) {
-        return res.status(500).send({ error: "Server error" });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
@@ -115,12 +115,14 @@ app.put("/update/:id", async (req, res) => {
         const result = await User.updateOne({ _id: userId }, { $set: updates });
 
         if (result.matchedCount === 0) {
-            return res.status(404).send({ error: "User not found" });
+            throw new Error("User not exist");
         }
 
+        console.log(`User updated: ${JSON.stringify(result)}`);
         return res.status(200).send({ status: "ok", data: result });
     } catch (error) {
-        return res.status(500).send({ error: "Server error" });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
@@ -131,22 +133,17 @@ app.put("/update/:id", async (req, res) => {
 //Retrieve User Budget Info
 app.get("/budget/:id/:name", async (req, res) => {
     try {
-        console.log(`Processing budget update for user: ${req.params.id}`);
+        console.log(`Retrieving budget: ${req.params.id}`);
         const userId = req.params.id;
         const name = req.params.name;
-        console.log("name", name);
 
         if (!name) {
-            return res
-                .status(400)
-                .send({ error: "Missing required fields: name" });
+            throw new Error("Missing required fields: name");
         }
 
         const user = await User.findById(userId);
-        console.log(user);
-
         if (!user) {
-            return res.status(404).send({ error: "User not found" });
+            throw new Error("User not exist");
         }
 
         // Check if budget with the same name already exists
@@ -156,32 +153,29 @@ app.get("/budget/:id/:name", async (req, res) => {
         if (!existingBudget) {
             throw new Error(`Budget not found`);
         }
+
+        console.log(`Budget retrieved: ${JSON.stringify(existingBudget)}`);
         return res.status(200).send({ status: "ok", data: existingBudget });
     } catch (error) {
-        return res.status(500).send({ error: "Server error" });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
 //Upsert User Budget Info
 app.put("/budget/:id", async (req, res) => {
     try {
-        console.log(`Processing budget update for user: ${req.params.id}`);
+        console.log(`Updating budget: ${req.params.id}`);
         const userId = req.params.id;
         const { name, budgetAmount } = req.body;
-        console.log("name", name);
-        console.log("budgetAmount", budgetAmount);
 
         if (!name || budgetAmount == null) {
-            return res.status(400).send({
-                error: "Missing required fields: name and budgetAmount",
-            });
+            throw new Error("Missing required fields: name and budgetAmount");
         }
 
         const user = await User.findById(userId);
-        console.log(user);
-
         if (!user) {
-            return res.status(404).send({ error: "User not found" });
+            throw new Error("User not exist");
         }
 
         // Check if budget with the same name already exists
@@ -190,12 +184,12 @@ app.put("/budget/:id", async (req, res) => {
         );
         if (existingBudget) {
             // Update existing budget
-            existingBudget.budgetAmount = budgetAmount;
+            existingBudget.budgetAmount = Number(budgetAmount);
         } else {
             // Add new budget
             user.budgets.push({
                 name,
-                budgetAmount,
+                budgetAmount: Number(budgetAmount),
                 expensesAmount: 0,
                 expensesCategory: [],
             });
@@ -203,10 +197,11 @@ app.put("/budget/:id", async (req, res) => {
 
         const userData = await user.save();
 
+        console.log(`Budget updated: ${JSON.stringify(userData)}`);
         return res.status(200).send({ status: "ok", data: userData });
     } catch (error) {
-        console.error("Error processing budget:", error);
-        return res.status(500).send({ error: "Server error" });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
@@ -214,14 +209,14 @@ app.put("/budget/:id", async (req, res) => {
 app.delete("/budget/:id/:name", async (req, res) => {
     try {
         console.log(
-            `Deleting budget for user: ${req.params.id}, budget: ${req.params.name}`
+            `Deleting budget: ${req.params.id}, budget: ${req.params.name}`
         );
         const userId = req.params.id;
         const budgetName = req.params.name;
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).send({ error: "User not found" });
+            throw new Error("User not exist");
         }
 
         user.budgets = user.budgets.filter(
@@ -230,38 +225,33 @@ app.delete("/budget/:id/:name", async (req, res) => {
 
         const userData = await user.save();
 
+        console.log(`Budget deleted: ${JSON.stringify(userData)}`);
         return res.status(200).send({ status: "ok", data: userData });
     } catch (error) {
-        console.error("Error deleting budget:", error);
-        return res.status(500).send({ error: "Server error" });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
 //Retrieve User expenses Info
 app.get("/expenses/:id/:name/:categoryName", async (req, res) => {
     try {
-        console.log(`Retrieving expenses for user: ${req.params.id}`);
+        console.log(`Retrieving expenses: ${req.params.id}`);
         const userId = req.params.id;
         const name = req.params.name;
         const categoryName = req.params.categoryName;
 
         if (!name) {
-            return res
-                .status(400)
-                .send({ error: "Missing required fields: name" });
+            throw new Error("Missing required fields: name");
         }
 
         if (!categoryName) {
-            return res
-                .status(400)
-                .send({ error: "Missing required fields: categoryName" });
+            throw new Error("Missing required fields: categoryName");
         }
 
         const user = await User.findById(userId);
-        console.log(user);
-
         if (!user) {
-            return res.status(404).send({ error: "User not found" });
+            throw new Error("User not exist");
         }
 
         // Check if budget with the same name already exists
@@ -278,16 +268,19 @@ app.get("/expenses/:id/:name/:categoryName", async (req, res) => {
         if (!existingExpense) {
             throw new Error(`Expenses not found`);
         }
+
+        console.log(`Expenses retrieved: ${JSON.stringify(existingExpense)}`);
         return res.status(200).send({ status: "ok", data: existingExpense });
     } catch (error) {
-        return res.status(500).send({ error: "Server error" });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
 //Retrieve User expenses details Info
 app.get("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
     try {
-        console.log(`Retrieving expenses for user: ${req.params.id}`);
+        console.log(`Retrieving expenses details: ${req.params.id}`);
         const userId = req.params.id;
         const name = req.params.name;
         const categoryName = req.params.categoryName;
@@ -302,7 +295,6 @@ app.get("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
         }
 
         const user = await User.findById(userId);
-
         if (!user) {
             throw new Error(`User not found`);
         }
@@ -321,7 +313,6 @@ app.get("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
         if (!existingExpense) {
             throw new Error(`Expenses not found`);
         }
-        console.log(existingExpense);
 
         const existingExpenseDetail =
             existingExpense.expensesCategoryDetail.find(
@@ -330,14 +321,18 @@ app.get("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
         if (!existingExpenseDetail) {
             throw new Error(`Expenses Details not found`);
         }
-        console.log("sdfsdf");
-        console.log(existingExpenseDetail);
 
+        console.log(
+            `Expenses details retrieved: ${JSON.stringify(
+                existingExpenseDetail
+            )}`
+        );
         return res
             .status(200)
             .send({ status: "ok", data: existingExpenseDetail });
     } catch (error) {
-        return res.status(500).send({ error: "Server error" });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
@@ -345,30 +340,29 @@ app.get("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
 app.post("/expenses/:id/:name", async (req, res) => {
     try {
         console.log(
-            `Adding expenses for user: ${req.params.id}, budget: ${req.params.name}`
+            `Adding expenses: ${req.params.id}, budget: ${req.params.name}`
         );
         const userId = req.params.id;
         const budgetName = req.params.name;
 
         const user = await User.findOne({ _id: userId });
         if (!user) {
-            return res.status(404).send({ error: "User not found" });
+            throw new Error(`User not found`);
         }
 
         const budgetIndex = user.budgets.findIndex(
             (b) => b.name === budgetName
         );
         if (budgetIndex === -1) {
-            return res.status(404).send({ error: "Budget not found" });
+            throw new Error(`Budget not found`);
         }
 
         let budget = user.budgets[budgetIndex];
-        console.log("xcvxcv");
-        console.log(req.body);
+
         let categoryIndex = budget.expensesCategory.findIndex(
             (c) => c.expensesCategoryName === req.body.expensesData.category
         );
-        console.log(`category index ${categoryIndex}`);
+
         if (categoryIndex === -1) {
             budget.expensesCategory.push({
                 expensesCategoryName: req.body.expensesData.category,
@@ -377,33 +371,33 @@ app.post("/expenses/:id/:name", async (req, res) => {
             });
             categoryIndex = budget.expensesCategory.length - 1;
         }
-        console.log("asdasads");
 
         let expenseCategory = budget.expensesCategory[categoryIndex];
-        console.log("xcvxvxvc");
-        console.log(`category ${expenseCategory}`);
 
         // Add the new expense to the category details
         expenseCategory.expensesCategoryDetail.push({
             name: req.body.expensesData.name,
             payer: req.body.expensesData.payer,
             dateCreated: new Date(req.body.expensesData.date),
-            amount: req.body.expensesData.amount,
+            amount: Number(req.body.expensesData.amount),
         });
 
         // Update category total
-        expenseCategory.expensesCategoryAmount += req.body.expensesData.amount;
+        expenseCategory.expensesCategoryAmount += Number(
+            req.body.expensesData.amount
+        );
 
         // Update overall budget expensesAmount
-        budget.expensesAmount += req.body.expensesData.amount;
+        budget.expensesAmount += Number(req.body.expensesData.amount);
 
         // Save user document
         const userData = await user.save();
 
+        console.log(`Expenses added: ${JSON.stringify(userData)}`);
         return res.status(200).send({ status: "ok", data: userData });
     } catch (error) {
-        console.error("Error adding expenses:", error);
-        return res.status(500).send({ error: "Server error" });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
@@ -411,25 +405,22 @@ app.post("/expenses/:id/:name", async (req, res) => {
 app.put("/expenses/:id/:name/:categoryName", async (req, res) => {
     try {
         console.log(
-            `Updating expenses for user: ${req.params.id}, budget: ${req.params.name}`
+            `Updating expenses: ${req.params.id}, budget: ${req.params.name}`
         );
         const userId = req.params.id;
         const budgetName = req.params.name;
         const categoryName = req.params.categoryName;
-        console.log(req.body);
-        const { id, name, amount, payer, date } = req.body;
 
         const user = await User.findOne({ _id: userId });
         if (!user) {
-            return res.status(404).send({ error: "User not found" });
+            throw new Error(`User not found`);
         }
-        console.log(`User ${user}`);
 
         const budgetIndex = user.budgets.findIndex(
             (b) => b.name === budgetName
         );
         if (budgetIndex === -1) {
-            return res.status(404).send({ error: "Budget not found" });
+            throw new Error(`Budget not found`);
         }
 
         let budget = user.budgets[budgetIndex];
@@ -439,7 +430,7 @@ app.put("/expenses/:id/:name/:categoryName", async (req, res) => {
         );
 
         if (categoryIndex === -1) {
-            throw new Error(`Category name ${categoryName} not found`);
+            throw new Error(`Category not found`);
         }
 
         let expenseCategory = budget.expensesCategory[categoryIndex];
@@ -451,7 +442,7 @@ app.put("/expenses/:id/:name/:categoryName", async (req, res) => {
             );
 
         if (categoryDetailIndex === -1) {
-            throw new Error("Expense detail not found");
+            throw new Error("Expenses details not found");
         }
 
         const oldExpensesCategoryDetailAmount =
@@ -473,10 +464,11 @@ app.put("/expenses/:id/:name/:categoryName", async (req, res) => {
         // Save user document
         const userData = await user.save();
 
+        console.log(`Expenses details updated: ${JSON.stringify(userData)}`);
         return res.status(200).send({ status: "ok", data: userData });
     } catch (error) {
-        console.error("Error updating expenses:", error);
-        return res.status(500).send({ error: "Server error" });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
@@ -484,7 +476,7 @@ app.put("/expenses/:id/:name/:categoryName", async (req, res) => {
 app.delete("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
     try {
         console.log(
-            `Deleting expenses for user: ${req.params.id}, budget: ${req.params.name}`
+            `Deleting expenses: ${req.params.id}, budget: ${req.params.name}`
         );
         const userId = req.params.id;
         const budgetName = req.params.name;
@@ -493,7 +485,7 @@ app.delete("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).send({ error: "User not found" });
+            throw new Error(`User not found`);
         }
 
         const budgetIndex = user.budgets.findIndex(
@@ -507,7 +499,7 @@ app.delete("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
         );
 
         if (categoryIndex === -1) {
-            throw new Error(`Category name ${categoryName} not found`);
+            throw new Error(`Category not found`);
         }
 
         let expenseCategory = budget.expensesCategory[categoryIndex];
@@ -519,7 +511,7 @@ app.delete("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
             );
 
         if (categoryDetailIndex === -1) {
-            throw new Error("Expense detail not found");
+            throw new Error("Expenses details not found");
         }
 
         const amount =
@@ -542,10 +534,11 @@ app.delete("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
 
         const userData = await user.save();
 
+        console.log(`Expenses details deleted: ${JSON.stringify(userData)}`);
         return res.status(200).send({ status: "ok", data: userData });
     } catch (error) {
-        console.error("Error deleting expenses:", error);
-        return res.status(500).send({ error: "Server error" });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
@@ -556,7 +549,7 @@ app.delete("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
 //Read preferences
 app.get("/preferences/:type", async (req, res) => {
     try {
-        console.log(`Retrieving preferences for type ${req.params.type}`);
+        console.log(`Retrieving preferences: ${req.params.type}`);
         const type = req.params.type;
 
         let travelModes;
@@ -571,11 +564,15 @@ app.get("/preferences/:type", async (req, res) => {
             throw new Error("Type of Preferences not found");
         }
 
+        console.log(
+            `Preferences retrieved: ${JSON.stringify(travelModes || interest)}`
+        );
         return res
             .status(200)
             .send({ status: "ok", data: travelModes || interest });
     } catch (error) {
-        return res.status(500).send({ error: error });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
@@ -586,12 +583,11 @@ app.get("/preferences/:type", async (req, res) => {
 //Read itinerary
 app.get("/itinerary/:id", async (req, res) => {
     try {
-        console.log(`Retrieving itinerary for user: ${req.params.id}`);
+        console.log(`Retrieving itinerary: ${req.params.id}`);
         const userId = req.params.id;
         // const { name, budgetAmount } = req.body;
 
         const user = await User.findById(userId);
-        console.log(user);
 
         if (!user) {
             throw new Error(`User not found`);
@@ -602,20 +598,21 @@ app.get("/itinerary/:id", async (req, res) => {
             throw new Error(`Itinerary not found`);
         }
 
+        console.log(`Itinerary retrieved: ${JSON.stringify(itineraries)}`);
         return res.status(200).send({ status: "ok", data: itineraries });
     } catch (error) {
-        return res.status(500).send({ error: error });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
 app.get("/itinerary/:id/:itineraryId", async (req, res) => {
     try {
-        console.log(`Retrieving itinerary for user: ${req.params.id}`);
+        console.log(`Retrieving itinerary: ${req.params.id}`);
         const userId = req.params.id;
         const itineraryId = req.params.itineraryId;
 
         const user = await User.findById(userId);
-        console.log(user);
 
         if (!user) {
             throw new Error(`User not found`);
@@ -631,16 +628,18 @@ app.get("/itinerary/:id/:itineraryId", async (req, res) => {
             throw new Error(`Plan not found`);
         }
 
+        console.log(`Itinerary plan retrieved: ${JSON.stringify(plan)}`);
         return res.status(200).send({ status: "ok", data: plan });
     } catch (error) {
-        return res.status(500).send({ error: error });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
 //Add itinerary
 app.post("/itinerary/:id", async (req, res) => {
     try {
-        console.log(`Processing itinerary update for user: ${req.params.id}`);
+        console.log(`Adding itinerary: ${req.params.id}`);
         const userId = req.params.id;
 
         const user = await User.findById(userId);
@@ -649,30 +648,31 @@ app.post("/itinerary/:id", async (req, res) => {
             throw new Error(`User not found`);
         }
 
-        console.log(req.body);
-        console.log("sdfsdf");
-        console.log(req.body.newItinerary);
         user.savedPlans.push(req.body.newItinerary);
-        console.log("asdadsasd");
+
         await user.save();
 
         const createdItinerary = user.savedPlans[user.savedPlans.length - 1];
 
+        console.log(`Itinerary added: ${JSON.stringify(createdItinerary)}`);
         return res.status(200).send({ status: "ok", data: createdItinerary });
     } catch (error) {
-        return res.status(500).send({ error: error });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
 //Update itinerary
 app.put("/itinerary/:userId/:itineraryId", async (req, res) => {
     try {
+        console.log(`Updating itinerary: ${JSON.stringify(req.params)}`);
+
         const { userId, itineraryId } = req.params;
         const updateData = req.body; // Contains the new itinerary data
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).send({ error: "User not found" });
+            throw new Error(`User not found`);
         }
 
         // Find the itinerary to update
@@ -680,32 +680,32 @@ app.put("/itinerary/:userId/:itineraryId", async (req, res) => {
             (plan) => plan._id.toString() === itineraryId
         );
         if (itineraryIndex === -1) {
-            return res.status(404).send({ error: "Itinerary not found" });
+            throw new Error(`Itinerary not found`);
         }
 
         // Update only the fields provided in the request body
-        Object.assign(user.savedPlans[itineraryIndex], updateData);
+        user.savedPlans[itineraryIndex] = updateData;
 
         // Save the updated user document
-        await user.save();
+        const userUpdated = await user.save();
 
-        return res.status(200).send({
-            message: "Itinerary updated successfully",
-            updatedItinerary: user.savedPlans[itineraryIndex],
-        });
+        console.log(`Itinerary updated: ${JSON.stringify(userUpdated)}`);
+        return res.status(200).send({ status: "ok", data: userUpdated });
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
 //Delete itinerary
 app.delete("/itinerary/:userId/:itineraryId", async (req, res) => {
     try {
+        console.log(`Deleting itinerary: ${JSON.stringify(req.params)}`);
         const { userId, itineraryId } = req.params;
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).send({ error: "User not found" });
+            throw new Error(`User not found`);
         }
 
         // Find the index of the itinerary to delete
@@ -713,58 +713,51 @@ app.delete("/itinerary/:userId/:itineraryId", async (req, res) => {
             (plan) => plan._id.toString() === itineraryId
         );
         if (itineraryIndex === -1) {
-            return res.status(404).send({ error: "Itinerary not found" });
+            throw new Error(`Itinerary not found`);
         }
 
         // Remove the itinerary from savedPlans
         user.savedPlans.splice(itineraryIndex, 1);
         const userUpdated = await user.save();
 
-        return res.status(200).send({
-            message: "Itinerary deleted successfully",
-            data: userUpdated,
-        });
+        console.log(`Itinerary deleted: ${JSON.stringify(userUpdated)}`);
+        return res.status(200).send({ status: "ok", data: userUpdated });
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
 
 app.put("/itinerary/details/:userId/:itineraryId", async (req, res) => {
     try {
+        console.log(`Updating itinerary plan: ${JSON.stringify(req.params)}`);
+
         const { userId, itineraryId } = req.params;
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).send({ error: "User not found" });
+            throw new Error(`User not found`);
         }
 
         const planIndex = user.savedPlans.findIndex(
             (plan) => plan._id.toString() === itineraryId
         );
         if (planIndex === -1) {
-            return res.status(404).send({ error: "Itinerary not found" });
+            throw new Error(`Itinerary not found`);
         }
 
         user.savedPlans[planIndex].itinerary = req.body.itinerary;
-        // console.log(user);
-        console.log("dasdad");
-        console.log(JSON.stringify(user.savedPlans[planIndex].itinerary));
-        console.log(JSON.stringify(req.body.itinerary));
-        // Mark as modified to ensure Mongoose detects the change
+
         user.markModified(`savedPlans.${planIndex}.itinerary`);
 
-        console.log("saving");
         // Save the updated user document
         const userUpdated = await user.save();
 
-        return res.status(200).send({
-            message: "Itinerary deleted successfully",
-            data: userUpdated,
-        });
+        console.log(`Itinerary plan updated: ${JSON.stringify(userUpdated)}`);
+
+        return res.status(200).send({ status: "ok", data: userUpdated });
     } catch (error) {
-        console.error(JSON.stringify(error));
-        return res.status(500).send({ error: error.message });
+        console.error(error);
+        return res.status(400).send({ error: error.message });
     }
 });
-
-//https://www.youtube.com/watch?v=Pqo7RBh7Xh4 - mongodb, prisma and graphql
