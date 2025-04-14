@@ -40,7 +40,7 @@ app.post("/register", async (req, res) => {
         const oldUser = await User.findOne({ email: email });
 
         if (oldUser) {
-            return res.status(400).send({ error: "User already exists" });
+            throw new Error("User already exists");
         }
 
         const newUser = await User.create({
@@ -54,7 +54,9 @@ app.post("/register", async (req, res) => {
         return res.status(200).send({ status: "ok", data: newUser });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -63,6 +65,7 @@ app.post("/login", async (req, res) => {
     try {
         console.log(`Logging user: ${JSON.stringify(req.body)}`);
         const { email, password } = req.body;
+        console.log(JSON.stringify(req.body));
         const userExist = await User.findOne({ email: email });
 
         if (!userExist) {
@@ -77,7 +80,9 @@ app.post("/login", async (req, res) => {
         return res.status(200).send({ status: "ok", data: userExist });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -101,7 +106,9 @@ app.get("/read/:id", async (req, res) => {
         return res.status(200).send({ status: "ok", data: user });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -122,7 +129,9 @@ app.put("/update/:id", async (req, res) => {
         return res.status(200).send({ status: "ok", data: result });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -158,7 +167,9 @@ app.get("/budget/:id/:name", async (req, res) => {
         return res.status(200).send({ status: "ok", data: existingBudget });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -201,7 +212,9 @@ app.put("/budget/:id", async (req, res) => {
         return res.status(200).send({ status: "ok", data: userData });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -229,7 +242,9 @@ app.delete("/budget/:id/:name", async (req, res) => {
         return res.status(200).send({ status: "ok", data: userData });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -273,7 +288,9 @@ app.get("/expenses/:id/:name/:categoryName", async (req, res) => {
         return res.status(200).send({ status: "ok", data: existingExpense });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -332,7 +349,9 @@ app.get("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
             .send({ status: "ok", data: existingExpenseDetail });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -397,7 +416,9 @@ app.post("/expenses/:id/:name", async (req, res) => {
         return res.status(200).send({ status: "ok", data: userData });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -468,7 +489,9 @@ app.put("/expenses/:id/:name/:categoryName", async (req, res) => {
         return res.status(200).send({ status: "ok", data: userData });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -538,7 +561,9 @@ app.delete("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
         return res.status(200).send({ status: "ok", data: userData });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -572,7 +597,9 @@ app.get("/preferences/:type", async (req, res) => {
             .send({ status: "ok", data: travelModes || interest });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -602,7 +629,9 @@ app.get("/itinerary/:id", async (req, res) => {
         return res.status(200).send({ status: "ok", data: itineraries });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -632,7 +661,9 @@ app.get("/itinerary/:id/:itineraryId", async (req, res) => {
         return res.status(200).send({ status: "ok", data: plan });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -658,7 +689,9 @@ app.post("/itinerary/:id", async (req, res) => {
         return res.status(200).send({ status: "ok", data: createdItinerary });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -693,7 +726,9 @@ app.put("/itinerary/:userId/:itineraryId", async (req, res) => {
         return res.status(200).send({ status: "ok", data: userUpdated });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -724,7 +759,9 @@ app.delete("/itinerary/:userId/:itineraryId", async (req, res) => {
         return res.status(200).send({ status: "ok", data: userUpdated });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
 
@@ -758,6 +795,8 @@ app.put("/itinerary/details/:userId/:itineraryId", async (req, res) => {
         return res.status(200).send({ status: "ok", data: userUpdated });
     } catch (error) {
         console.error(error);
-        return res.status(400).send({ error: error.message });
+        return res
+            .status(400)
+            .send({ status: "error", message: error.message });
     }
 });
