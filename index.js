@@ -37,8 +37,8 @@ app.post("/register", async (req, res) => {
     try {
         console.log(`Registering user: ${JSON.stringify(req.body)}`);
         const { name, gender, email, password } = req.body;
-        const oldUser = await User.findOne({ email: email });
 
+        const oldUser = await User.findOne({ email: email });
         if (oldUser) {
             throw new Error("User already exists");
         }
@@ -51,7 +51,7 @@ app.post("/register", async (req, res) => {
         });
 
         console.log(`User registered: ${JSON.stringify(newUser)}`);
-        return res.status(200).send({ status: "ok", data: newUser });
+        return res.status(200).send({ status: "200", data: newUser });
     } catch (error) {
         console.error(error);
         return res
@@ -65,9 +65,8 @@ app.post("/login", async (req, res) => {
     try {
         console.log(`Logging user: ${JSON.stringify(req.body)}`);
         const { email, password } = req.body;
-        console.log(JSON.stringify(req.body));
+        
         const userExist = await User.findOne({ email: email });
-
         if (!userExist) {
             throw new Error("User not exist");
         }
@@ -77,7 +76,7 @@ app.post("/login", async (req, res) => {
         }
 
         console.log(`User logged in: ${JSON.stringify(userExist)}`);
-        return res.status(200).send({ status: "ok", data: userExist });
+        return res.status(200).send({ status: "200", data: userExist });
     } catch (error) {
         console.error(error);
         return res
@@ -103,7 +102,7 @@ app.get("/read/:id", async (req, res) => {
         }
 
         console.log(`User retrieved: ${JSON.stringify(user)}`);
-        return res.status(200).send({ status: "ok", data: user });
+        return res.status(200).send({ status: "200", data: user });
     } catch (error) {
         console.error(error);
         return res
@@ -125,8 +124,9 @@ app.put("/update/:id", async (req, res) => {
             throw new Error("User not exist");
         }
 
+        const user = await User.findById(userId);
         console.log(`User updated: ${JSON.stringify(result)}`);
-        return res.status(200).send({ status: "ok", data: result });
+        return res.status(200).send({ status: "200", data: user });
     } catch (error) {
         console.error(error);
         return res
@@ -164,7 +164,7 @@ app.get("/budget/:id/:name", async (req, res) => {
         }
 
         console.log(`Budget retrieved: ${JSON.stringify(existingBudget)}`);
-        return res.status(200).send({ status: "ok", data: existingBudget });
+        return res.status(200).send({ status: "200", data: existingBudget });
     } catch (error) {
         console.error(error);
         return res
@@ -209,7 +209,7 @@ app.put("/budget/:id", async (req, res) => {
         const userData = await user.save();
 
         console.log(`Budget updated: ${JSON.stringify(userData)}`);
-        return res.status(200).send({ status: "ok", data: userData });
+        return res.status(200).send({ status: "200", data: userData.budgets });
     } catch (error) {
         console.error(error);
         return res
@@ -239,7 +239,7 @@ app.delete("/budget/:id/:name", async (req, res) => {
         const userData = await user.save();
 
         console.log(`Budget deleted: ${JSON.stringify(userData)}`);
-        return res.status(200).send({ status: "ok", data: userData });
+        return res.status(200).send({ status: "200", data: userData.budgets });
     } catch (error) {
         console.error(error);
         return res
@@ -285,7 +285,7 @@ app.get("/expenses/:id/:name/:categoryName", async (req, res) => {
         }
 
         console.log(`Expenses retrieved: ${JSON.stringify(existingExpense)}`);
-        return res.status(200).send({ status: "ok", data: existingExpense });
+        return res.status(200).send({ status: "200", data: existingExpense });
     } catch (error) {
         console.error(error);
         return res
@@ -346,7 +346,7 @@ app.get("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
         );
         return res
             .status(200)
-            .send({ status: "ok", data: existingExpenseDetail });
+            .send({ status: "200", data: existingExpenseDetail });
     } catch (error) {
         console.error(error);
         return res
@@ -413,7 +413,9 @@ app.post("/expenses/:id/:name", async (req, res) => {
         const userData = await user.save();
 
         console.log(`Expenses added: ${JSON.stringify(userData)}`);
-        return res.status(200).send({ status: "ok", data: userData });
+        const result =
+            userData.budgets[budgetIndex].expensesCategory[categoryIndex];
+        return res.status(200).send({ status: "200", data: result });
     } catch (error) {
         console.error(error);
         return res
@@ -486,7 +488,9 @@ app.put("/expenses/:id/:name/:categoryName", async (req, res) => {
         const userData = await user.save();
 
         console.log(`Expenses details updated: ${JSON.stringify(userData)}`);
-        return res.status(200).send({ status: "ok", data: userData });
+        const result =
+            userData.budgets[budgetIndex].expensesCategory[categoryIndex];
+        return res.status(200).send({ status: "200", data: result });
     } catch (error) {
         console.error(error);
         return res
@@ -558,7 +562,9 @@ app.delete("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
         const userData = await user.save();
 
         console.log(`Expenses details deleted: ${JSON.stringify(userData)}`);
-        return res.status(200).send({ status: "ok", data: userData });
+        const result =
+            userData.budgets[budgetIndex].expensesCategory[categoryIndex];
+        return res.status(200).send({ status: "200", data: result });
     } catch (error) {
         console.error(error);
         return res
@@ -594,7 +600,7 @@ app.get("/preferences/:type", async (req, res) => {
         );
         return res
             .status(200)
-            .send({ status: "ok", data: travelModes || interest });
+            .send({ status: "200", data: travelModes || interest });
     } catch (error) {
         console.error(error);
         return res
@@ -626,7 +632,7 @@ app.get("/itinerary/:id", async (req, res) => {
         }
 
         console.log(`Itinerary retrieved: ${JSON.stringify(itineraries)}`);
-        return res.status(200).send({ status: "ok", data: itineraries });
+        return res.status(200).send({ status: "200", data: itineraries });
     } catch (error) {
         console.error(error);
         return res
@@ -658,7 +664,7 @@ app.get("/itinerary/:id/:itineraryId", async (req, res) => {
         }
 
         console.log(`Itinerary plan retrieved: ${JSON.stringify(plan)}`);
-        return res.status(200).send({ status: "ok", data: plan });
+        return res.status(200).send({ status: "200", data: plan });
     } catch (error) {
         console.error(error);
         return res
@@ -686,7 +692,7 @@ app.post("/itinerary/:id", async (req, res) => {
         const createdItinerary = user.savedPlans[user.savedPlans.length - 1];
 
         console.log(`Itinerary added: ${JSON.stringify(createdItinerary)}`);
-        return res.status(200).send({ status: "ok", data: createdItinerary });
+        return res.status(200).send({ status: "200", data: createdItinerary });
     } catch (error) {
         console.error(error);
         return res
@@ -696,14 +702,14 @@ app.post("/itinerary/:id", async (req, res) => {
 });
 
 //Update itinerary
-app.put("/itinerary/:userId/:itineraryId", async (req, res) => {
+app.put("/itinerary/:id/:itineraryId", async (req, res) => {
     try {
         console.log(`Updating itinerary: ${JSON.stringify(req.params)}`);
 
-        const { userId, itineraryId } = req.params;
+        const { id, itineraryId } = req.params;
         const updateData = req.body; // Contains the new itinerary data
 
-        const user = await User.findById(userId);
+        const user = await User.findById(id);
         if (!user) {
             throw new Error(`User not found`);
         }
@@ -723,7 +729,10 @@ app.put("/itinerary/:userId/:itineraryId", async (req, res) => {
         const userUpdated = await user.save();
 
         console.log(`Itinerary updated: ${JSON.stringify(userUpdated)}`);
-        return res.status(200).send({ status: "ok", data: userUpdated });
+        return res.status(200).send({
+            status: "200",
+            data: userUpdated.savedPlans[itineraryIndex],
+        });
     } catch (error) {
         console.error(error);
         return res
@@ -733,12 +742,12 @@ app.put("/itinerary/:userId/:itineraryId", async (req, res) => {
 });
 
 //Delete itinerary
-app.delete("/itinerary/:userId/:itineraryId", async (req, res) => {
+app.delete("/itinerary/:id/:itineraryId", async (req, res) => {
     try {
         console.log(`Deleting itinerary: ${JSON.stringify(req.params)}`);
-        const { userId, itineraryId } = req.params;
+        const { id, itineraryId } = req.params;
 
-        const user = await User.findById(userId);
+        const user = await User.findById(id);
         if (!user) {
             throw new Error(`User not found`);
         }
@@ -756,7 +765,9 @@ app.delete("/itinerary/:userId/:itineraryId", async (req, res) => {
         const userUpdated = await user.save();
 
         console.log(`Itinerary deleted: ${JSON.stringify(userUpdated)}`);
-        return res.status(200).send({ status: "ok", data: userUpdated });
+        return res
+            .status(200)
+            .send({ status: "200", data: userUpdated.savedPlans });
     } catch (error) {
         console.error(error);
         return res
@@ -765,13 +776,14 @@ app.delete("/itinerary/:userId/:itineraryId", async (req, res) => {
     }
 });
 
-app.put("/itinerary/details/:userId/:itineraryId", async (req, res) => {
+//Update itinerary plan details
+app.put("/itinerary/details/:id/:itineraryId", async (req, res) => {
     try {
         console.log(`Updating itinerary plan: ${JSON.stringify(req.params)}`);
 
-        const { userId, itineraryId } = req.params;
+        const { id, itineraryId } = req.params;
 
-        const user = await User.findById(userId);
+        const user = await User.findById(id);
         if (!user) {
             throw new Error(`User not found`);
         }
@@ -792,7 +804,9 @@ app.put("/itinerary/details/:userId/:itineraryId", async (req, res) => {
 
         console.log(`Itinerary plan updated: ${JSON.stringify(userUpdated)}`);
 
-        return res.status(200).send({ status: "ok", data: userUpdated });
+        return res
+            .status(200)
+            .send({ status: "200", data: userUpdated.savedPlans[planIndex] });
     } catch (error) {
         console.error(error);
         return res
