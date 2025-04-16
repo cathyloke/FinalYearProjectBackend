@@ -64,8 +64,9 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
     try {
         console.log(`Logging user: ${JSON.stringify(req.body)}`);
+
         const { email, password } = req.body;
-        
+
         const userExist = await User.findOne({ email: email });
         if (!userExist) {
             throw new Error("User not exist");
@@ -363,6 +364,7 @@ app.post("/expenses/:id/:name", async (req, res) => {
         );
         const userId = req.params.id;
         const budgetName = req.params.name;
+        console.log(req.body);
 
         const user = await User.findOne({ _id: userId });
         if (!user) {
@@ -379,12 +381,12 @@ app.post("/expenses/:id/:name", async (req, res) => {
         let budget = user.budgets[budgetIndex];
 
         let categoryIndex = budget.expensesCategory.findIndex(
-            (c) => c.expensesCategoryName === req.body.expensesData.category
+            (c) => c.expensesCategoryName === req.body.category
         );
 
         if (categoryIndex === -1) {
             budget.expensesCategory.push({
-                expensesCategoryName: req.body.expensesData.category,
+                expensesCategoryName: req.body.category,
                 expensesCategoryAmount: 0,
                 expensesCategoryDetail: [],
             });
@@ -395,27 +397,29 @@ app.post("/expenses/:id/:name", async (req, res) => {
 
         // Add the new expense to the category details
         expenseCategory.expensesCategoryDetail.push({
-            name: req.body.expensesData.name,
-            payer: req.body.expensesData.payer,
-            dateCreated: new Date(req.body.expensesData.date),
-            amount: Number(req.body.expensesData.amount),
+            name: req.body.name,
+            payer: req.body.payer,
+            dateCreated: new Date(req.body.date),
+            amount: Number(req.body.amount),
         });
 
         // Update category total
-        expenseCategory.expensesCategoryAmount += Number(
-            req.body.expensesData.amount
-        );
+        expenseCategory.expensesCategoryAmount += Number(req.body.amount);
 
         // Update overall budget expensesAmount
-        budget.expensesAmount += Number(req.body.expensesData.amount);
+        budget.expensesAmount += Number(req.body.amount);
 
         // Save user document
         const userData = await user.save();
 
-        console.log(`Expenses added: ${JSON.stringify(userData)}`);
-        const result =
-            userData.budgets[budgetIndex].expensesCategory[categoryIndex];
-        return res.status(200).send({ status: "200", data: result });
+        const result = (await User.findById(userId)).budgets[budgetIndex]
+            .expensesCategory[categoryIndex];
+        console.log("asdasd");
+        console.log(JSON.stringify(result));
+        return res.status(200).send({
+            status: "200",
+            data: result,
+        });
     } catch (error) {
         console.error(error);
         return res
