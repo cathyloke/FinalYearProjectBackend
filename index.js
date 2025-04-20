@@ -1,17 +1,13 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const mongoURL =
-    "mongodb+srv://catloke963:1234@feriodb.isp9y.mongodb.net/feriodb?retryWrites=true&w=majority&appName=ferioDB";
+const cors = require("cors");
 
 const app = express();
 app.use(express.json());
-const cors = require("cors");
 app.use(cors());
 
-app.get("/", (req, res) => {
-    res.send("Server is working");
-});
-
+const mongoURL =
+    "mongodb+srv://catloke963:1234@feriodb.isp9y.mongodb.net/feriodb?retryWrites=true&w=majority&appName=ferioDB";
 mongoose
     .connect(mongoURL)
     .then(() => {
@@ -20,6 +16,7 @@ mongoose
     .catch((error) => {
         console.error(error);
     });
+
 require("./User");
 require("./TravelMode");
 require("./Interest");
@@ -30,6 +27,10 @@ const Interest = mongoose.model("Interest");
 
 app.listen(3000, () => {
     console.log("server is running on port 3000");
+});
+
+app.get("/", (req, res) => {
+    res.send("Server is working");
 });
 
 //User Registration
@@ -46,7 +47,7 @@ app.post("/register", async (req, res) => {
         const newUser = await User.create({
             name: name,
             gender: gender,
-            email: email,
+            email: email.toLowerCase(),
             password: password,
         });
 
@@ -67,7 +68,7 @@ app.post("/login", async (req, res) => {
 
         const { email, password } = req.body;
 
-        const userExist = await User.findOne({ email: email });
+        const userExist = await User.findOne({ email: email.toLowerCase() });
         if (!userExist) {
             throw new Error("User not exist");
         }

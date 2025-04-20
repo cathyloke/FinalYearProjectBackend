@@ -43,7 +43,7 @@ const UserSchema = new mongoose.Schema(
         ],
         budgets: [
             {
-                name: { type: String, unique: true },
+                name: { type: String },
                 budgetAmount: { type: Number },
                 expensesAmount: { type: Number },
                 expensesCategory: [
