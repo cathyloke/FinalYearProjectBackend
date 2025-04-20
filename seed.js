@@ -1,8 +1,7 @@
 const mongoose = require("mongoose");
 
 const mongoURL =
-    "mongodb+srv://catloke963:1234@feriodb.isp9y.mongodb.net/feriodb?retryWrites=true&w=majority&appName=ferioDB";
-
+    "mongodb+srv://catloke963:8888@feriodb.isp9y.mongodb.net/feriodb?retryWrites=true&w=majority&appName=ferioDB";
 mongoose.connect(mongoURL);
 
 const Interest = mongoose.model(

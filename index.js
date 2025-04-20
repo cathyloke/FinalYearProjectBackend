@@ -65,7 +65,6 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
     try {
         console.log(`Logging user: ${JSON.stringify(req.body)}`);
-
         const { email, password } = req.body;
 
         const userExist = await User.findOne({ email: email.toLowerCase() });
@@ -308,11 +307,9 @@ app.get("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
         if (!name) {
             throw new Error(`Missing required fields: name`);
         }
-
         if (!categoryName) {
             throw new Error(`Missing required fields: categoryName`);
         }
-
         const user = await User.findById(userId);
         if (!user) {
             throw new Error(`User not found`);
@@ -365,13 +362,11 @@ app.post("/expenses/:id/:name", async (req, res) => {
         );
         const userId = req.params.id;
         const budgetName = req.params.name;
-        console.log(req.body);
 
         const user = await User.findOne({ _id: userId });
         if (!user) {
             throw new Error(`User not found`);
         }
-
         const budgetIndex = user.budgets.findIndex(
             (b) => b.name === budgetName
         );
@@ -380,11 +375,9 @@ app.post("/expenses/:id/:name", async (req, res) => {
         }
 
         let budget = user.budgets[budgetIndex];
-
         let categoryIndex = budget.expensesCategory.findIndex(
             (c) => c.expensesCategoryName === req.body.category
         );
-
         if (categoryIndex === -1) {
             budget.expensesCategory.push({
                 expensesCategoryName: req.body.category,
@@ -393,7 +386,6 @@ app.post("/expenses/:id/:name", async (req, res) => {
             });
             categoryIndex = budget.expensesCategory.length - 1;
         }
-
         let expenseCategory = budget.expensesCategory[categoryIndex];
 
         // Add the new expense to the category details
@@ -411,12 +403,11 @@ app.post("/expenses/:id/:name", async (req, res) => {
         budget.expensesAmount += Number(req.body.amount);
 
         // Save user document
-        const userData = await user.save();
+        await user.save();
 
         const result = (await User.findById(userId)).budgets[budgetIndex]
             .expensesCategory[categoryIndex];
-        console.log("asdasd");
-        console.log(JSON.stringify(result));
+        console.log(`Expenses details added: ${JSON.stringify(result)}`);
         return res.status(200).send({
             status: "200",
             data: result,
@@ -519,21 +510,19 @@ app.delete("/expenses/:id/:name/:categoryName/:detailId", async (req, res) => {
         if (!user) {
             throw new Error(`User not found`);
         }
-
         const budgetIndex = user.budgets.findIndex(
             (b) => b.name === budgetName
         );
-
+        if (budgetIndex === -1) {
+            throw new Error(`Budget not found`);
+        }
         let budget = user.budgets[budgetIndex];
-
         let categoryIndex = budget.expensesCategory.findIndex(
             (c) => c.expensesCategoryName === categoryName
         );
-
         if (categoryIndex === -1) {
             throw new Error(`Category not found`);
         }
-
         let expenseCategory = budget.expensesCategory[categoryIndex];
 
         // Update the category details based on the id given
