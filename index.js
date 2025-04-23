@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const OpenAI = require("openai");
 
 const app = express();
 app.use(express.json());
@@ -806,5 +807,55 @@ app.put("/itinerary/details/:id/:itineraryId", async (req, res) => {
         return res
             .status(400)
             .send({ status: "error", message: error.message });
+    }
+});
+
+//Create itinerary using AI
+const openai = new OpenAI({
+    apiKey: "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",
+});
+
+app.post("/generate-itinerary", async (req, res) => {
+    const {
+        startDate,
+        endDate,
+        name,
+        destination,
+        budgetCategory,
+        travelMode,
+        interests,
+    } = req.body;
+
+    const prompt = `Create a travel itinerary for ${name} in ${destination} from ${startDate} to ${endDate} with a ${budgetCategory} budget. The user is traveling by ${travelMode} and enjoys ${interests.join(
+        ", "
+    )}. Provide the itinerary strictly in raw JSON format only, with no additional text or explanation. The structure should be like:
+        [
+            {
+                "day": 1,
+                "activities": [
+                    {
+                        "time": "13:00",
+                        "activity": "Visit...",
+                        "location": "..."
+                    }
+                ]
+            }
+        ]`;
+    try {
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 2000,
+        });
+
+        const itineraryText = response.choices[0].message.content;
+
+        console.log("AI Response:\n", itineraryText);
+        const jsonString =
+            itineraryText.match(/```json([\s\S]*?)```/)?.[1] || itineraryText;
+
+        res.json(JSON.parse(jsonString));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
