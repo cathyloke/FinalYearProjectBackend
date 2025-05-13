@@ -7,8 +7,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const mongoURL =
-    "mongodb+srv://catloke963:1234@feriodb.isp9y.mongodb.net/feriodb?retryWrites=true&w=majority&appName=ferioDB";
+const mongoURL = "YOURMONGOURL";
 mongoose
     .connect(mongoURL)
     .then(() => {
@@ -812,7 +811,7 @@ app.put("/itinerary/details/:id/:itineraryId", async (req, res) => {
 
 //Create itinerary using AI
 const openai = new OpenAI({
-    apiKey: "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",
+    apiKey: "YOUROPENAIAPIKEY",
 });
 
 app.post("/generate-itinerary", async (req, res) => {
